@@ -12,6 +12,8 @@ class HTMLNode:
     
     # Return a string the represents the HTML attributes of the node
     def props_to_html(self):
+        if self.props is None:
+            return ""
         props = ""
         for key, value in self.props.items():
             props += f' {key}="{value}"'
@@ -29,16 +31,46 @@ class HTMLNode:
         )
 
 class LeafNode(HTMLNode):
-    def __init__(self, tag=None, value=None, props=None):
-        if tag is None and value is None:
-            raise ValueError("At least one of tag or value must be specified")
+    def __init__(self, tag, value, props=None):
         super().__init__(tag, value, None, props)
     
     def to_html(self):
+        if self.value is None:
+            raise ValueError("Invalid HTML: No Value")
         if self.tag is None:
             return self.value
-        elif self.props is None:
-            return f'<{self.tag}>{self.value}</{self.tag}>'
-        else:
-            return f'<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>'
+        return f'<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>'
+    
+    def __repr__(self):
+        return f'LeafNode({self.tag}, {self.value}, {self.props})'
 
+class ParentNode(HTMLNode):
+    def __init__(self, tag, children, props=None):
+        super().__init__(tag, None, children, props)
+    
+    def to_html(self):
+        if self.tag is None:
+            raise ValueError("Invlaid HTML: No Tag")
+        if self.children is None:
+            raise ValueError("Invalid HTML: No Children")
+
+        child_html = ""
+        for child in self.children:
+            child_html += child.to_html()
+        
+        return f"<{self.tag}{self.props_to_html()}>{child_html}</{self.tag}>"
+
+    def __repr__(self):
+        return f'ParentNode({self.tag}, children: {self.children}, {self.props})'
+
+node = ParentNode(
+    "p",
+    [
+        LeafNode("b", "Bold text"),
+        LeafNode(None, "Normal text"),
+        LeafNode("i", "italic text"),
+        LeafNode(None, "Normal text"),
+    ],
+)
+
+print(node.to_html())
