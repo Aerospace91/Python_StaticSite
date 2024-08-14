@@ -1,3 +1,2 @@
 python src/main.py
-
-# TODO: add a script to run this script in a docker container
+cd public && python -m http.server 8888
